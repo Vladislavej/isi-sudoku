@@ -1,1 +1,1 @@
-# iot-sudoku
+# isi-sudoku
