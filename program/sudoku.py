@@ -1,3 +1,5 @@
+import tkinter as tk
+from tkinter import messagebox
 import random
 import time
 
@@ -20,7 +22,7 @@ def solve_sudoku(board, size):
         for col in range(size):
             if board[row][col] == 0:
                 numbers = list(range(1, size + 1))
-                random.shuffle(numbers)
+                random.shuffle(numbers)  #shuffle numbers
                 for num in numbers:
                     if is_valid(board, row, col, num, size):
                         board[row][col] = num
@@ -47,26 +49,109 @@ def remove_numbers(board, num_holes, size):
     return board
 
 
+def is_valid_board(board, size):
+    return solve_sudoku([row[:] for row in board], size)
+
+
+# GUI class
+class SudokuGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Sudoku")
+
+        self.size = 9  #default size (9x9)
+        self.board = []
+        self.original_board = []
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.grid_frame = tk.Frame(self.root)
+        self.grid_frame.pack(pady=10)
+
+        self.buttons_frame = tk.Frame(self.root)
+        self.buttons_frame.pack()
+
+        # Buttons
+        self.generate_button = tk.Button(self.buttons_frame, text="Generate", command=self.generate_board)
+        self.generate_button.grid(row=0, column=0, padx=5, pady=5)
+
+        self.solve_button = tk.Button(self.buttons_frame, text="Solve", command=self.solve_board)
+        self.solve_button.grid(row=0, column=1, padx=5, pady=5)
+
+        self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board)
+        self.check_button.grid(row=0, column=2, padx=5, pady=5)
+
+        # Difficulty and size
+        self.difficulty_var = tk.StringVar(value="Easy")
+        self.difficulty_menu = tk.OptionMenu(self.buttons_frame, self.difficulty_var, "Easy", "Medium", "Hard")
+        self.difficulty_menu.grid(row=1, column=0, columnspan=2, pady=5)
+
+        self.size_var = tk.StringVar(value="9x9")
+        self.size_menu = tk.OptionMenu(self.buttons_frame, self.size_var, "4x4", "9x9")
+        self.size_menu.grid(row=1, column=2, columnspan=2, pady=5)
+
+    def generate_board(self):
+        self.size = 4 if self.size_var.get() == "4x4" else 9
+        difficulty = self.difficulty_var.get()
+        num_holes = {"Easy": self.size * 2, "Medium": self.size * 3, "Hard": self.size * 4}[difficulty]
+
+        random.seed(time.time())
+
+        valid_board = False
+        while not valid_board:
+            self.board = generate_sudoku(self.size)
+            self.original_board = [row[:] for row in self.board]
+            remove_numbers(self.board, num_holes, self.size)
+
+            valid_board = is_valid_board(self.board, self.size)
+
+        print("Generated board:")
+        for row in self.board:
+            print(row)
+
+        self.display_board()
+
+    def display_board(self):
+        for widget in self.grid_frame.winfo_children():
+            widget.destroy()
+
+        self.entries = []
+        for i in range(self.size):
+            row = []
+            for j in range(self.size):
+                entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 18), justify="center")
+                entry.grid(row=i, column=j, padx=5, pady=5)
+                if self.board[i][j] != 0:
+                    entry.insert(0, str(self.board[i][j]))
+                    entry.config(state="disabled")
+                row.append(entry)
+            self.entries.append(row)
+
+    def solve_board(self):
+        if solve_sudoku(self.board, self.size):
+            self.display_board()
+        else:
+            messagebox.showerror("Error", "No solution exists for this board!")
+
+    def check_board(self):
+        for i in range(self.size):
+            for j in range(self.size):
+                try:
+                    value = int(self.entries[i][j].get())
+                except ValueError:
+                    messagebox.showerror("Error", "Invalid input! All cells must have numbers.")
+                    return
+                self.board[i][j] = value
+
+        solved_board = [row[:] for row in self.original_board]
+        if solve_sudoku(solved_board, self.size) and self.board == solved_board:
+            messagebox.showinfo("Success", "Congratulations! The board is solved correctly!")
+        else:
+            messagebox.showerror("Error", "The board is incorrect!")
+
+
 if __name__ == "__main__":
-    random.seed(time.time())
-
-    print("Choose Sudoku size:")
-    print("1. 4x4 (2x2 subgrids)")
-    print("2. 9x9 (3x3 subgrids)")
-
-    choice = input("Enter 1 or 2: ").strip()
-
-    if choice == "1":
-        size = 4  # 4x4 board
-        num_holes = 0
-    elif choice == "2":
-        size = 9  # 9x9 board
-        num_holes = 0
-    else:
-        print("Invalid choice. Please restart and select 1 or 2.")
-        exit()
-
-    sudoku_board = generate_sudoku(size)
-    puzzle = remove_numbers(sudoku_board, num_holes, size)
-    for row in puzzle:
-        print(row)
+    root = tk.Tk()
+    app = SudokuGUI(root)
+    root.mainloop()
