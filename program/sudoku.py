@@ -1,4 +1,4 @@
-import random
+import random, time
 
 
 def is_valid(board, row, col, num):
@@ -17,7 +17,9 @@ def solve_sudoku(board):
     for row in range(9):
         for col in range(9):
             if board[row][col] == 0:
-                for num in range(1, 10):
+                numbers = list(range(1, 10))
+                random.shuffle(numbers)
+                for num in numbers:
                     if is_valid(board, row, col, num):
                         board[row][col] = num
                         if solve_sudoku(board):
@@ -44,6 +46,7 @@ def remove_numbers(board, num_holes):
 
 
 if __name__ == "__main__":
+    random.seed(time.time())
     sudoku_board = generate_sudoku()
     puzzle = remove_numbers(sudoku_board, 0)
     for row in puzzle:
