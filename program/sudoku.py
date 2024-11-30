@@ -54,7 +54,6 @@ def is_valid_board(board, size):
 
 
 def solve_with_backtracking(board, size):
-    """Solve the Sudoku using Backtracking."""
     for row in range(size):
         for col in range(size):
             if board[row][col] == 0:
@@ -69,7 +68,6 @@ def solve_with_backtracking(board, size):
 
 
 def solve_with_dfs(board, size):
-    """Solve the Sudoku using Depth-First Search."""
     stack = [(board, 0, 0)]  # Stack holds (current board, row, col)
     while stack:
         current_board, row, col = stack.pop()
@@ -92,16 +90,13 @@ def solve_with_dfs(board, size):
 
 
 def solve_with_forward_checking(board, size):
-    """Solve the Sudoku using Forward Checking."""
     def forward_check(board, size):
-        """Create a list of possible values for each cell."""
         possibilities = [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
                           if board[row][col] == 0 else []
                           for col in range(size)] for row in range(size)]
         return possibilities
 
     def forward_check_solve(board, size, possibilities):
-        """Solve using forward checking."""
         empty_cells = [(row, col) for row in range(size) for col in range(size) if board[row][col] == 0]
         if not empty_cells:
             return True
@@ -167,7 +162,11 @@ class SudokuGUI:
     def generate_board(self):
         self.size = 4 if self.size_var.get() == "4x4" else 9
         difficulty = self.difficulty_var.get()
-        num_holes = {"Easy": self.size * 2, "Medium": self.size * 3, "Hard": self.size * 4}[difficulty]
+        if self.size == 4:
+            num_holes = {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
+        else:
+            num_holes = {"Easy": self.size * 2, "Medium": self.size * 3, "Hard": self.size * 4}[difficulty]
+
 
         random.seed(time.time())
 
