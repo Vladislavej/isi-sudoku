@@ -202,16 +202,27 @@ class SudokuGUI:
             widget.destroy()
 
         self.entries = []
+        subgrid_size = int(self.size ** 0.5)
+
+        canvas = tk.Canvas(self.grid_frame, width=self.size * 40, height=self.size * 40)
+        canvas.grid(row=0, column=0, columnspan=self.size, rowspan=self.size)
+
         for i in range(self.size):
             row = []
             for j in range(self.size):
                 entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 18), justify="center")
-                entry.grid(row=i, column=j, padx=5, pady=5)
+                entry.place(x=j * 40 + 2, y=i * 40 + 2, width=36, height=36)
                 if self.board[i][j] != 0:
                     entry.insert(0, str(self.board[i][j]))
                     entry.config(state="disabled")
                 row.append(entry)
             self.entries.append(row)
+
+        # grid lines
+        for i in range(self.size):
+            width = 3 if i % subgrid_size == 0 else 1
+            canvas.create_line(0, i * 40, self.size * 40, i * 40, width=width)  # horizontal
+            canvas.create_line(i * 40, 0, i * 40, self.size * 40, width=width)  # vertical
 
     def update_board(self, board):
         for i in range(self.size):
