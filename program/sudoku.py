@@ -53,7 +53,7 @@ def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
 
 
-def solve_with_backtracking(board, size, gui, delay):
+def solve_with_backtracking(board, size, gui, delay, steps):
     for row in range(size):
         for col in range(size):
             if board[row][col] == 0:
@@ -63,17 +63,19 @@ def solve_with_backtracking(board, size, gui, delay):
                         gui.update_board(board)
                         gui.root.update_idletasks()
                         gui.root.after(delay)
-                        if solve_with_backtracking(board, size, gui, delay):
+                        steps[0] += 1
+                        if solve_with_backtracking(board, size, gui, delay, steps):
                             return True
                         board[row][col] = 0
                         gui.update_board(board)
                         gui.root.update_idletasks()
                         gui.root.after(delay)
+                        steps[0] += 1
                 return False
     return True
 
 
-def solve_with_dfs(board, size, gui, delay):
+def solve_with_dfs(board, size, gui, delay, steps):
     stack = [(board, 0, 0)]
     while stack:
         current_board, row, col = stack.pop()
@@ -95,10 +97,11 @@ def solve_with_dfs(board, size, gui, delay):
                     gui.update_board(new_board)
                     gui.root.update_idletasks()
                     gui.root.after(delay)
+                    steps[0] += 1
     return False
 
 
-def solve_with_forward_checking(board, size, gui, delay):
+def solve_with_forward_checking(board, size, gui, delay, steps):
     def forward_check(board, size):
         possibilities = [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
                           if board[row][col] == 0 else []
@@ -119,6 +122,7 @@ def solve_with_forward_checking(board, size, gui, delay):
                 gui.update_board(board)
                 gui.root.update_idletasks()
                 gui.root.after(delay)
+                steps[0] += 1
                 new_possibilities = forward_check(board, size)
                 if forward_check_solve(board, size, new_possibilities):
                     return True
@@ -126,12 +130,12 @@ def solve_with_forward_checking(board, size, gui, delay):
                 gui.update_board(board)
                 gui.root.update_idletasks()
                 gui.root.after(delay)
+                steps[0] += 1
 
         return False
 
     possibilities = forward_check(board, size)
     return forward_check_solve(board, size, possibilities)
-
 
 class SudokuGUI:
     def __init__(self, root):
@@ -228,9 +232,11 @@ class SudokuGUI:
 
         board_copy = [row[:] for row in self.board]
         delay = 100  # delay in milliseconds
-        if solving_method(board_copy, self.size, self, delay):
+        steps = [0]  # list to keep track of steps
+        if solving_method(board_copy, self.size, self, delay, steps):
             self.board = board_copy
             self.display_board()
+            messagebox.showinfo("Statistics", f"Solved using {algorithm} in {steps[0]} steps!")
         else:
             messagebox.showerror("Error", f"No solution exists using {algorithm}!")
 
