@@ -1,1 +1,2 @@
 # isi-sudoku
+mocilenko, kurilak

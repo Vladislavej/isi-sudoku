@@ -53,25 +53,31 @@ def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
 
 
-def solve_with_backtracking(board, size):
+def solve_with_backtracking(board, size, gui, delay):
     for row in range(size):
         for col in range(size):
             if board[row][col] == 0:
                 for num in range(1, size + 1):
                     if is_valid(board, row, col, num, size):
                         board[row][col] = num
-                        if solve_with_backtracking(board, size):
+                        gui.update_board(board)
+                        gui.root.update_idletasks()
+                        gui.root.after(delay)
+                        if solve_with_backtracking(board, size, gui, delay):
                             return True
                         board[row][col] = 0
+                        gui.update_board(board)
+                        gui.root.update_idletasks()
+                        gui.root.after(delay)
                 return False
     return True
 
 
-def solve_with_dfs(board, size):
-    stack = [(board, 0, 0)]  # Stack holds (current board, row, col)
+def solve_with_dfs(board, size, gui, delay):
+    stack = [(board, 0, 0)]
     while stack:
         current_board, row, col = stack.pop()
-        if row == size:  # Completed the board
+        if row == size:
             for r in range(size):
                 for c in range(size):
                     board[r][c] = current_board[r][c]
@@ -86,10 +92,13 @@ def solve_with_dfs(board, size):
                     new_board = [row[:] for row in current_board]
                     new_board[row][col] = num
                     stack.append((new_board, next_row, next_col))
+                    gui.update_board(new_board)
+                    gui.root.update_idletasks()
+                    gui.root.after(delay)
     return False
 
 
-def solve_with_forward_checking(board, size):
+def solve_with_forward_checking(board, size, gui, delay):
     def forward_check(board, size):
         possibilities = [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
                           if board[row][col] == 0 else []
@@ -101,16 +110,22 @@ def solve_with_forward_checking(board, size):
         if not empty_cells:
             return True
 
-        empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))  # Sort by fewest possibilities
+        empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))
         row, col = empty_cells[0]
 
         for num in possibilities[row][col]:
             if is_valid(board, row, col, num, size):
                 board[row][col] = num
+                gui.update_board(board)
+                gui.root.update_idletasks()
+                gui.root.after(delay)
                 new_possibilities = forward_check(board, size)
                 if forward_check_solve(board, size, new_possibilities):
                     return True
                 board[row][col] = 0
+                gui.update_board(board)
+                gui.root.update_idletasks()
+                gui.root.after(delay)
 
         return False
 
@@ -123,11 +138,12 @@ class SudokuGUI:
         self.root = root
         self.root.title("Sudoku")
 
-        self.size = 9  # default size (9x9)
+        self.size = 9
         self.board = []
         self.original_board = []
 
         self.create_widgets()
+        self.generate_board()
 
     def create_widgets(self):
         self.grid_frame = tk.Frame(self.root)
@@ -139,7 +155,6 @@ class SudokuGUI:
         self.generate_button = tk.Button(self.buttons_frame, text="Generate", command=self.generate_board)
         self.generate_button.grid(row=0, column=0, padx=5, pady=5)
 
-        #dropdown for solve algorithms
         self.solve_alg_var = tk.StringVar(value="Backtracking")
         self.solve_alg_menu = tk.OptionMenu(self.buttons_frame, self.solve_alg_var, "Backtracking", "DFS", "Forward Checking")
         self.solve_alg_menu.grid(row=0, column=1, padx=5, pady=5)
@@ -150,7 +165,6 @@ class SudokuGUI:
         self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board)
         self.check_button.grid(row=0, column=3, padx=5, pady=5)
 
-        # Difficulty and size
         self.difficulty_var = tk.StringVar(value="Easy")
         self.difficulty_menu = tk.OptionMenu(self.buttons_frame, self.difficulty_var, "Easy", "Medium", "Hard")
         self.difficulty_menu.grid(row=1, column=0, columnspan=2, pady=5)
@@ -165,8 +179,7 @@ class SudokuGUI:
         if self.size == 4:
             num_holes = {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
         else:
-            num_holes = {"Easy": self.size * 2, "Medium": self.size * 3, "Hard": self.size * 4}[difficulty]
-
+            num_holes = {"Easy": self.size * 3, "Medium": self.size * 4, "Hard": self.size * 5}[difficulty]
 
         random.seed(time.time())
 
@@ -196,6 +209,14 @@ class SudokuGUI:
                 row.append(entry)
             self.entries.append(row)
 
+    def update_board(self, board):
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j] != board[i][j]:
+                    self.entries[i][j].delete(0, tk.END)
+                    if board[i][j] != 0:
+                        self.entries[i][j].insert(0, str(board[i][j]))
+
     def solve_board(self):
         algorithm = self.solve_alg_var.get()
         solving_methods = {
@@ -206,7 +227,8 @@ class SudokuGUI:
         solving_method = solving_methods[algorithm]
 
         board_copy = [row[:] for row in self.board]
-        if solving_method(board_copy, self.size):
+        delay = 100  # delay in milliseconds
+        if solving_method(board_copy, self.size, self, delay):
             self.board = board_copy
             self.display_board()
         else:
