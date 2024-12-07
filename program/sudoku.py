@@ -164,10 +164,10 @@ class SudokuGUI:
 
         self.solve_alg_var = tk.StringVar(value="Backtracking")
         self.solve_alg_menu = tk.OptionMenu(self.buttons_frame, self.solve_alg_var, "Backtracking", "DFS", "Forward Checking")
-        self.solve_alg_menu.grid(row=0, column=1, padx=5, pady=5)
+        self.solve_alg_menu.grid(row=1, column=1, padx=5, pady=5)
 
         self.solve_button = tk.Button(self.buttons_frame, text="Solve", command=self.solve_board)
-        self.solve_button.grid(row=0, column=2, padx=5, pady=5)
+        self.solve_button.grid(row=1, column=0, padx=5, pady=5)
 
         self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board)
         self.check_button.grid(row=0, column=3, padx=5, pady=5)
@@ -177,15 +177,15 @@ class SudokuGUI:
 
         self.difficulty_var = tk.StringVar(value="Easy")
         self.difficulty_menu = tk.OptionMenu(self.buttons_frame, self.difficulty_var, "Easy", "Medium", "Hard")
-        self.difficulty_menu.grid(row=1, column=0, columnspan=2, pady=5)
+        self.difficulty_menu.grid(row=0, column=2, pady=5)
 
         self.size_var = tk.StringVar(value="9x9")
         self.size_menu = tk.OptionMenu(self.buttons_frame, self.size_var, "4x4", "9x9")
-        self.size_menu.grid(row=1, column=2, columnspan=2, pady=5)
+        self.size_menu.grid(row=0, column=1, pady=5)
 
         self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=250, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
         self.delay_scale.set(self.delay)
-        self.delay_scale.grid(row=2, column=0, columnspan=4, pady=5)
+        self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
 
     def update_delay(self, value):
         self.delay = int(value)
