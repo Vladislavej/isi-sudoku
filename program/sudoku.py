@@ -147,6 +147,7 @@ class SudokuGUI:
         self.board = []
         self.original_board = []
         self.initial_board = []
+        self.delay = 100  # default delay in milliseconds
 
         self.create_widgets()
         self.generate_board()
@@ -181,6 +182,13 @@ class SudokuGUI:
         self.size_var = tk.StringVar(value="9x9")
         self.size_menu = tk.OptionMenu(self.buttons_frame, self.size_var, "4x4", "9x9")
         self.size_menu.grid(row=1, column=2, columnspan=2, pady=5)
+
+        self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=250, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
+        self.delay_scale.set(self.delay)
+        self.delay_scale.grid(row=2, column=0, columnspan=4, pady=5)
+
+    def update_delay(self, value):
+        self.delay = int(value)
 
     def generate_board(self):
         self.size = 4 if self.size_var.get() == "4x4" else 9
@@ -252,9 +260,8 @@ class SudokuGUI:
         solving_method = solving_methods[algorithm]
 
         board_copy = [row[:] for row in self.board]
-        delay = 100  # delay in milliseconds
         steps = [0]  # list to keep track of steps
-        if solving_method(board_copy, self.size, self, delay, steps):
+        if solving_method(board_copy, self.size, self, self.delay, steps):
             self.board = board_copy
             self.display_board()
             messagebox.showinfo("Statistics", f"Solved using {algorithm} in {steps[0]} steps!")
