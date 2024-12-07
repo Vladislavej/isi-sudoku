@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 import random
 import time
 
@@ -145,6 +146,7 @@ class SudokuGUI:
         self.size = 9
         self.board = []
         self.original_board = []
+        self.initial_board = []
 
         self.create_widgets()
         self.generate_board()
@@ -168,6 +170,9 @@ class SudokuGUI:
 
         self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board)
         self.check_button.grid(row=0, column=3, padx=5, pady=5)
+
+        self.reset_button = tk.Button(self.buttons_frame, text="Reset", command=self.reset_board)
+        self.reset_button.grid(row=0, column=4, padx=5, pady=5)
 
         self.difficulty_var = tk.StringVar(value="Easy")
         self.difficulty_menu = tk.OptionMenu(self.buttons_frame, self.difficulty_var, "Easy", "Medium", "Hard")
@@ -195,6 +200,11 @@ class SudokuGUI:
 
             valid_board = is_valid_board(self.board, self.size)
 
+        self.initial_board = [row[:] for row in self.board]
+        self.display_board()
+
+    def reset_board(self):
+        self.board = [row[:] for row in self.initial_board]
         self.display_board()
 
     def display_board(self):
