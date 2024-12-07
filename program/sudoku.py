@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import ttk
 import random
 import time
 
+CELL_SIZE = 40
+LINE_WIDTH = 3
 
 def is_valid(board, row, col, num, size):
     subgrid_size = int(size ** 0.5)
@@ -17,13 +18,12 @@ def is_valid(board, row, col, num, size):
                 return False
     return True
 
-
 def solve_sudoku(board, size):
     for row in range(size):
         for col in range(size):
             if board[row][col] == 0:
                 numbers = list(range(1, size + 1))
-                random.shuffle(numbers)  #shuffle numbers
+                random.shuffle(numbers)
                 for num in numbers:
                     if is_valid(board, row, col, num, size):
                         board[row][col] = num
@@ -33,12 +33,10 @@ def solve_sudoku(board, size):
                 return False
     return True
 
-
 def generate_sudoku(size):
     board = [[0] * size for _ in range(size)]
     solve_sudoku(board, size)
     return board
-
 
 def remove_numbers(board, num_holes, size):
     holes = set()
@@ -49,10 +47,8 @@ def remove_numbers(board, num_holes, size):
             board[i][j] = 0
     return board
 
-
 def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
-
 
 def solve_with_backtracking(board, size, gui, delay, steps):
     for row in range(size):
@@ -74,7 +70,6 @@ def solve_with_backtracking(board, size, gui, delay, steps):
                         steps[0] += 1
                 return False
     return True
-
 
 def solve_with_dfs(board, size, gui, delay, steps):
     stack = [(board, 0, 0)]
@@ -101,13 +96,11 @@ def solve_with_dfs(board, size, gui, delay, steps):
                     steps[0] += 1
     return False
 
-
 def solve_with_forward_checking(board, size, gui, delay, steps):
     def forward_check(board, size):
-        possibilities = [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
-                          if board[row][col] == 0 else []
-                          for col in range(size)] for row in range(size)]
-        return possibilities
+        return [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
+                 if board[row][col] == 0 else []
+                 for col in range(size)] for row in range(size)]
 
     def forward_check_solve(board, size, possibilities):
         empty_cells = [(row, col) for row in range(size) for col in range(size) if board[row][col] == 0]
@@ -192,11 +185,7 @@ class SudokuGUI:
 
     def generate_board(self):
         self.size = 4 if self.size_var.get() == "4x4" else 9
-        difficulty = self.difficulty_var.get()
-        if self.size == 4:
-            num_holes = {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
-        else:
-            num_holes = {"Easy": self.size * 3, "Medium": self.size * 4, "Hard": self.size * 5}[difficulty]
+        num_holes = self.get_num_holes()
 
         random.seed(time.time())
 
@@ -211,6 +200,13 @@ class SudokuGUI:
         self.initial_board = [row[:] for row in self.board]
         self.display_board()
 
+    def get_num_holes(self):
+        difficulty = self.difficulty_var.get()
+        if self.size == 4:
+            return {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
+        else:
+            return {"Easy": self.size * 3, "Medium": self.size * 4, "Hard": self.size * 5}[difficulty]
+
     def reset_board(self):
         self.board = [row[:] for row in self.initial_board]
         self.display_board()
@@ -222,25 +218,24 @@ class SudokuGUI:
         self.entries = []
         subgrid_size = int(self.size ** 0.5)
 
-        canvas = tk.Canvas(self.grid_frame, width=self.size * 40, height=self.size * 40)
+        canvas = tk.Canvas(self.grid_frame, width=self.size * CELL_SIZE, height=self.size * CELL_SIZE)
         canvas.grid(row=0, column=0, columnspan=self.size, rowspan=self.size)
 
         for i in range(self.size):
             row = []
             for j in range(self.size):
                 entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 18), justify="center")
-                entry.place(x=j * 40 + 2, y=i * 40 + 2, width=36, height=36)
+                entry.place(x=j * CELL_SIZE + 2, y=i * CELL_SIZE + 2, width=36, height=36)
                 if self.board[i][j] != 0:
                     entry.insert(0, str(self.board[i][j]))
                     entry.config(state="disabled")
                 row.append(entry)
             self.entries.append(row)
 
-        # grid lines
         for i in range(self.size):
-            width = 3 if i % subgrid_size == 0 else 1
-            canvas.create_line(0, i * 40, self.size * 40, i * 40, width=width)  # horizontal
-            canvas.create_line(i * 40, 0, i * 40, self.size * 40, width=width)  # vertical
+            width = LINE_WIDTH if i % subgrid_size == 0 else 1
+            canvas.create_line(0, i * CELL_SIZE, self.size * CELL_SIZE, i * CELL_SIZE, width=width)
+            canvas.create_line(i * CELL_SIZE, 0, i * CELL_SIZE, self.size * CELL_SIZE, width=width)
 
     def update_board(self, board):
         for i in range(self.size):
@@ -260,7 +255,7 @@ class SudokuGUI:
         solving_method = solving_methods[algorithm]
 
         board_copy = [row[:] for row in self.board]
-        steps = [0]  # list to keep track of steps
+        steps = [0]
         if solving_method(board_copy, self.size, self, self.delay, steps):
             self.board = board_copy
             self.display_board()
@@ -283,7 +278,6 @@ class SudokuGUI:
             messagebox.showinfo("Success", "Congratulations! The board is solved correctly!")
         else:
             messagebox.showerror("Error", "The board is incorrect!")
-
 
 if __name__ == "__main__":
     root = tk.Tk()
