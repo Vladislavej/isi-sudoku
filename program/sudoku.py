@@ -51,50 +51,73 @@ def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
 
 def solve_with_backtracking(board, size, gui, delay, steps):
-    for row in range(size):
-        for col in range(size):
-            if board[row][col] == 0:
-                for num in range(1, size + 1):
-                    if is_valid(board, row, col, num, size):
-                        board[row][col] = num
-                        gui.update_board(board)
-                        gui.root.update_idletasks()
-                        gui.root.after(delay)
-                        steps[0] += 1
-                        if solve_with_backtracking(board, size, gui, delay, steps):
-                            return True
-                        board[row][col] = 0
-                        gui.update_board(board)
-                        gui.root.update_idletasks()
-                        gui.root.after(delay)
-                        steps[0] += 1
-                return False
-    return True
+    def find_empty(board, size):
+        min_possibilities = float('inf')
+        selected_cell = None
+        for row in range(size):
+            for col in range(size):
+                if board[row][col] == 0:
+                    possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
+                    if len(possibilities) < min_possibilities:
+                        min_possibilities = len(possibilities)
+                        selected_cell = (row, col)
+        return selected_cell
+
+    cell = find_empty(board, size)
+    if cell is None:
+        return True
+
+    row, col = cell
+    for num in range(1, size + 1):
+        if is_valid(board, row, col, num, size):
+            board[row][col] = num
+            gui.update_board(board)
+            gui.root.update_idletasks()
+            gui.root.after(delay)
+            steps[0] += 1
+            if solve_with_backtracking(board, size, gui, delay, steps):
+                return True
+            board[row][col] = 0
+            gui.update_board(board)
+            gui.root.update_idletasks()
+            gui.root.after(delay)
+            steps[0] += 1
+    return False
 
 def solve_with_dfs(board, size, gui, delay, steps):
-    stack = [(board, 0, 0)]
+    def find_empty(board, size):
+        min_possibilities = float('inf')
+        selected_cell = None
+        for row in range(size):
+            for col in range(size):
+                if board[row][col] == 0:
+                    possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
+                    if len(possibilities) < min_possibilities:
+                        min_possibilities = len(possibilities)
+                        selected_cell = (row, col)
+        return selected_cell
+
+    stack = [(board, find_empty(board, size))]
     while stack:
-        current_board, row, col = stack.pop()
-        if row == size:
+        current_board, cell = stack.pop()
+        if cell is None:
             for r in range(size):
                 for c in range(size):
                     board[r][c] = current_board[r][c]
             return True
 
-        next_row, next_col = (row + (col + 1) // size, (col + 1) % size)
-        if current_board[row][col] != 0:
-            stack.append((current_board, next_row, next_col))
-        else:
-            for num in range(1, size + 1):
-                if is_valid(current_board, row, col, num, size):
-                    new_board = [row[:] for row in current_board]
-                    new_board[row][col] = num
-                    stack.append((new_board, next_row, next_col))
-                    gui.update_board(new_board)
-                    gui.root.update_idletasks()
-                    gui.root.after(delay)
-                    steps[0] += 1
+        row, col = cell
+        for num in range(1, size + 1):
+            if is_valid(current_board, row, col, num, size):
+                new_board = [row[:] for row in current_board]
+                new_board[row][col] = num
+                stack.append((new_board, find_empty(new_board, size)))
+                gui.update_board(new_board)
+                gui.root.update_idletasks()
+                gui.root.after(delay)
+                steps[0] += 1
     return False
+
 
 def solve_with_forward_checking(board, size, gui, delay, steps):
     def forward_check(board, size):
@@ -110,7 +133,16 @@ def solve_with_forward_checking(board, size, gui, delay, steps):
         empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))
         row, col = empty_cells[0]
 
-        for num in possibilities[row][col]:
+        def lcv_key(num):
+            affected = 0
+            for i in range(size):
+                if i != row and num in possibilities[i][col]:
+                    affected += 1
+                if i != col and num in possibilities[row][i]:
+                    affected += 1
+            return affected
+
+        for num in sorted(possibilities[row][col], key=lcv_key):
             if is_valid(board, row, col, num, size):
                 board[row][col] = num
                 gui.update_board(board)
