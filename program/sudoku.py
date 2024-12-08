@@ -176,7 +176,7 @@ class SudokuGUI:
         self.size_menu = tk.OptionMenu(self.buttons_frame, self.size_var, "4x4", "9x9")
         self.size_menu.grid(row=0, column=1, pady=5)
 
-        self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=250, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
+        self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=100, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
         self.delay_scale.set(self.delay)
         self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
 
