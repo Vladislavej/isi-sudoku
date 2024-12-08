@@ -237,7 +237,7 @@ class SudokuGUI:
         if self.size == 4:
             return {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
         else:
-            return {"Easy": self.size * 3, "Medium": self.size * 4, "Hard": self.size * 5}[difficulty]
+            return {"Easy": self.size * 6, "Medium": self.size * 7, "Hard": self.size * 8}[difficulty]
 
     def reset_board(self):
         self.board = [row[:] for row in self.initial_board]
