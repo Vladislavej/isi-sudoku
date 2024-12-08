@@ -6,6 +6,13 @@ import time
 CELL_SIZE = 40
 LINE_WIDTH = 3
 
+use_heuristics = True
+
+def toggle_heuristics():
+    global use_heuristics
+    use_heuristics = not use_heuristics
+    app.heuristics_button.config(text=f"Heuristics: {'On' if use_heuristics else 'Off'}")
+
 def is_valid(board, row, col, num, size):
     subgrid_size = int(size ** 0.5)
     for i in range(size):
@@ -52,16 +59,23 @@ def is_valid_board(board, size):
 
 def solve_with_backtracking(board, size, gui, delay, steps):
     def find_empty(board, size):
-        min_possibilities = float('inf')
-        selected_cell = None
-        for row in range(size):
-            for col in range(size):
-                if board[row][col] == 0:
-                    possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
-                    if len(possibilities) < min_possibilities:
-                        min_possibilities = len(possibilities)
-                        selected_cell = (row, col)
-        return selected_cell
+        if use_heuristics:
+            min_possibilities = float('inf')
+            selected_cell = None
+            for row in range(size):
+                for col in range(size):
+                    if board[row][col] == 0:
+                        possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
+                        if len(possibilities) < min_possibilities:
+                            min_possibilities = len(possibilities)
+                            selected_cell = (row, col)
+            return selected_cell
+        else:
+            for row in range(size):
+                for col in range(size):
+                    if board[row][col] == 0:
+                        return (row, col)
+        return None
 
     cell = find_empty(board, size)
     if cell is None:
@@ -84,18 +98,26 @@ def solve_with_backtracking(board, size, gui, delay, steps):
             steps[0] += 1
     return False
 
+
 def solve_with_dfs(board, size, gui, delay, steps):
     def find_empty(board, size):
-        min_possibilities = float('inf')
-        selected_cell = None
-        for row in range(size):
-            for col in range(size):
-                if board[row][col] == 0:
-                    possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
-                    if len(possibilities) < min_possibilities:
-                        min_possibilities = len(possibilities)
-                        selected_cell = (row, col)
-        return selected_cell
+        if use_heuristics:
+            min_possibilities = float('inf')
+            selected_cell = None
+            for row in range(size):
+                for col in range(size):
+                    if board[row][col] == 0:
+                        possibilities = [num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
+                        if len(possibilities) < min_possibilities:
+                            min_possibilities = len(possibilities)
+                            selected_cell = (row, col)
+            return selected_cell
+        else:
+            for row in range(size):
+                for col in range(size):
+                    if board[row][col] == 0:
+                        return (row, col)
+        return None
 
     stack = [(board, find_empty(board, size))]
     while stack:
@@ -130,10 +152,14 @@ def solve_with_forward_checking(board, size, gui, delay, steps):
         if not empty_cells:
             return True
 
-        empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))
+        if use_heuristics:
+            empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))
+
         row, col = empty_cells[0]
 
         def lcv_key(num):
+            if not use_heuristics:
+                return 0
             affected = 0
             for i in range(size):
                 if i != row and num in possibilities[i][col]:
@@ -142,6 +168,7 @@ def solve_with_forward_checking(board, size, gui, delay, steps):
                     affected += 1
             return affected
 
+        #LCV
         for num in sorted(possibilities[row][col], key=lcv_key):
             if is_valid(board, row, col, num, size):
                 board[row][col] = num
@@ -162,6 +189,7 @@ def solve_with_forward_checking(board, size, gui, delay, steps):
 
     possibilities = forward_check(board, size)
     return forward_check_solve(board, size, possibilities)
+
 
 class SudokuGUI:
     def __init__(self, root):
@@ -211,6 +239,9 @@ class SudokuGUI:
         self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=100, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
         self.delay_scale.set(self.delay)
         self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
+
+        self.heuristics_button = tk.Button(self.buttons_frame, text=f"Heuristics: {'On' if use_heuristics else 'Off'}", command=toggle_heuristics)
+        self.heuristics_button.grid(row=2, column=0, padx=5, pady=5)
 
     def update_delay(self, value):
         self.delay = int(value)
@@ -310,6 +341,7 @@ class SudokuGUI:
             messagebox.showinfo("Success", "Congratulations! The board is solved correctly!")
         else:
             messagebox.showerror("Error", "The board is incorrect!")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
