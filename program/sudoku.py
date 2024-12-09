@@ -6,6 +6,7 @@ import time
 CELL_SIZE = 40
 LINE_WIDTH = 3
 
+
 def is_valid(board, row, col, num, size):
     subgrid_size = int(size ** 0.5)
     for i in range(size):
@@ -17,6 +18,7 @@ def is_valid(board, row, col, num, size):
             if board[i][j] == num:
                 return False
     return True
+
 
 def solve_sudoku(board, size):
     for row in range(size):
@@ -33,10 +35,12 @@ def solve_sudoku(board, size):
                 return False
     return True
 
+
 def generate_sudoku(size):
     board = [[0] * size for _ in range(size)]
     solve_sudoku(board, size)
     return board
+
 
 def remove_numbers(board, num_holes, size):
     holes = set()
@@ -47,8 +51,10 @@ def remove_numbers(board, num_holes, size):
             board[i][j] = 0
     return board
 
+
 def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
+
 
 def solve_with_backtracking(board, size, gui, delay, steps):
     for row in range(size):
@@ -70,6 +76,7 @@ def solve_with_backtracking(board, size, gui, delay, steps):
                         steps[0] += 1
                 return False
     return True
+
 
 def solve_with_dfs(board, size, gui, delay, steps):
     stack = [(board, 0, 0)]
@@ -95,6 +102,7 @@ def solve_with_dfs(board, size, gui, delay, steps):
                     gui.root.after(delay)
                     steps[0] += 1
     return False
+
 
 def solve_with_forward_checking(board, size, gui, delay, steps):
     def forward_check(board, size):
@@ -130,6 +138,7 @@ def solve_with_forward_checking(board, size, gui, delay, steps):
 
     possibilities = forward_check(board, size)
     return forward_check_solve(board, size, possibilities)
+
 
 class SudokuGUI:
     def __init__(self, root):
@@ -278,6 +287,7 @@ class SudokuGUI:
             messagebox.showinfo("Success", "Congratulations! The board is solved correctly!")
         else:
             messagebox.showerror("Error", "The board is incorrect!")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
