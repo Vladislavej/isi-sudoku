@@ -157,44 +157,47 @@ class SudokuGUI:
         self.generate_board()
 
     def create_widgets(self):
-        self.grid_frame = tk.Frame(self.root)
+        self.grid_frame = tk.Frame(self.root, bg="lightgray")
         self.grid_frame.pack(pady=10)
 
-        self.buttons_frame = tk.Frame(self.root)
+        self.buttons_frame = tk.Frame(self.root, bg="lightgray")
         self.buttons_frame.pack()
 
-        self.generate_button = tk.Button(self.buttons_frame, text="Generate", command=self.generate_board)
+        self.generate_button = tk.Button(self.buttons_frame, text="Generate", command=self.generate_board, bg="white")
         self.generate_button.grid(row=0, column=0, padx=5, pady=5)
 
         self.solve_alg_var = tk.StringVar(value="Backtracking")
         self.solve_alg_menu = tk.OptionMenu(self.buttons_frame, self.solve_alg_var, "Backtracking", "DFS", "Forward Checking")
+        self.solve_alg_menu.config(bg="white")
         self.solve_alg_menu.grid(row=1, column=1, padx=5, pady=5)
 
-        self.solve_button = tk.Button(self.buttons_frame, text="Solve", command=self.solve_board)
+        self.solve_button = tk.Button(self.buttons_frame, text="Solve", command=self.solve_board, bg="lightgreen")
         self.solve_button.grid(row=1, column=0, padx=5, pady=5)
 
-        self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board)
+        self.check_button = tk.Button(self.buttons_frame, text="Check", command=self.check_board, bg="white")
         self.check_button.grid(row=0, column=3, padx=5, pady=5)
 
-        self.reset_button = tk.Button(self.buttons_frame, text="Reset", command=self.reset_board)
+        self.reset_button = tk.Button(self.buttons_frame, text="Reset", command=self.reset_board, bg="lightcoral")
         self.reset_button.grid(row=0, column=4, padx=5, pady=5)
 
         self.difficulty_var = tk.StringVar(value="Easy")
         self.difficulty_menu = tk.OptionMenu(self.buttons_frame, self.difficulty_var, "Easy", "Medium", "Hard")
+        self.difficulty_menu.config(bg="white")
         self.difficulty_menu.grid(row=0, column=2, pady=5)
 
         self.size_var = tk.StringVar(value="9x9")
         self.size_menu = tk.OptionMenu(self.buttons_frame, self.size_var, "4x4", "9x9")
+        self.size_menu.config(bg="white")
         self.size_menu.grid(row=0, column=1, pady=5)
 
-        self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=100, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay)
+        self.delay_scale = tk.Scale(self.buttons_frame, from_=0, to=100, orient=tk.HORIZONTAL, label="Delay (ms)", command=self.update_delay, bg="white")
         self.delay_scale.set(self.delay)
         self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
 
-        self.time_label = tk.Label(self.buttons_frame, text="Time: 0s")
+        self.time_label = tk.Label(self.buttons_frame, text="Time: 0s", bg="white")
         self.time_label.grid(row=2, column=0, padx=10, pady=10)
 
-        self.step_label = tk.Label(self.buttons_frame, text="Steps: 0")
+        self.step_label = tk.Label(self.buttons_frame, text="Steps: 0", bg="white")
         self.step_label.grid(row=2, column=1, padx=10, pady=10)
 
     def update_delay(self, value):
@@ -241,11 +244,11 @@ class SudokuGUI:
         for i in range(self.size):
             row = []
             for j in range(self.size):
-                entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 18), justify="center")
+                entry = tk.Entry(self.grid_frame, width=2, font=("Arial", 18), justify="center", bg="lightyellow")
                 entry.place(x=j * CELL_SIZE + 2, y=i * CELL_SIZE + 2, width=36, height=36)
                 if self.board[i][j] != 0:
                     entry.insert(0, str(self.board[i][j]))
-                    entry.config(state="disabled")
+                    entry.config(state="disabled", disabledbackground="white")
                 row.append(entry)
             self.entries.append(row)
 
