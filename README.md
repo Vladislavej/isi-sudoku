@@ -1,92 +1,73 @@
 # Sudoku Solver Algorithms
 
-This repository explores three algorithms used to solve Sudoku puzzles: **Backtracking**, **Depth-First Search (DFS)**, and **Forward Checking**. Each algorithm is analyzed for performance, including their strengths, weaknesses, and statistical efficiency.
+This document explains different algorithms used to solve Sudoku puzzles. The algorithms compared are **Backtracking**, **DFS (Depth First Search)**, and **Forward Checking**. Each of these algorithms is evaluated in terms of performance, steps required, and time taken on various Sudoku grid sizes and difficulty levels.
 
----
+## Sudoku Game Overview
 
-## 📜 **Sudoku Overview**
-Sudoku is a logic-based number placement game played on a 9x9 grid. The goal is to fill the grid such that:
+Sudoku is a puzzle game that is usually played on a 9x9 grid, divided into 3x3 subgrids. The goal is to fill in the grid with numbers from 1 to 9 so that:
+- Each row contains all numbers from 1 to 9 without repetition.
+- Each column contains all numbers from 1 to 9 without repetition.
+- Each 3x3 subgrid contains all numbers from 1 to 9 without repetition.
 
-- Each row, column, and 3x3 subgrid contains the digits 1 through 9.
-- Numbers cannot repeat within a row, column, or subgrid.
+At the start of the game, some numbers are pre-filled into the grid, and the objective is to fill in the remaining cells following these rules.
 
-At the start of the game, some cells are pre-filled with numbers, and the objective is to complete the grid while adhering to these rules.
-
----
-
-## 🚀 **Implemented Algorithms**
+## Algorithms
 
 ### 1. **Backtracking**
-- **How It Works**: 
-  - Iterates through each cell and tries numbers 1 through 9.
-  - If a number fits the Sudoku rules, it is placed, and the algorithm moves to the next cell.
-  - If no number fits, the algorithm backtracks to the previous cell and tries the next option.
-- **Pros**: 
-  - Simple and reliable approach that guarantees a solution if one exists.
-- **Cons**: 
-  - Can be slow due to the brute-force nature of testing all possibilities.
 
-#### **Performance Metrics**
-- **Minimum Steps**: 227 (State 4)  
-- **Maximum Steps**: 4483 (State 7)  
-- **Average Steps**: 1203.1  
+Backtracking is a recursive algorithm that explores all possible values for each cell in the grid one by one:
+1. **Traverse the grid**: The algorithm searches for an empty cell (marked as 0).
+2. **Try values**: For each empty cell, it tests numbers from 1 to 9.
+3. **Validate**: If the number satisfies the Sudoku rules (no duplicates in row, column, or 3x3 subgrid), the number is placed in the cell.
+4. **Recursion**: The algorithm then proceeds to the next empty cell.
+5. **Backtrack**: If no solution is found (i.e., the grid becomes invalid), the algorithm undoes the last step and tries a different number.
 
----
+### 2. **DFS (Depth First Search)**
 
-### 2. **Depth-First Search (DFS)**
-- **How It Works**: 
-  - Uses a stack to explore the grid.
-  - Similar to Backtracking, but instead of direct recursion, it creates a copy of the grid for each potential move and pushes it onto the stack.
-  - Backtracks by popping the last grid state when stuck.
-- **Pros**: 
-  - Clear and stack-driven approach.
-- **Cons**: 
-  - Can still be slow, as it explores many possibilities.
-
-#### **Performance Metrics**
-- **Minimum Steps**: 108 (State 8)  
-- **Maximum Steps**: 2264 (State 7)  
-- **Average Steps**: 671  
-
----
+DFS is a systematic algorithm that explores the entire solution space:
+1. **Try values**: For each empty cell, it tries values from 1 to 9 without checking if they satisfy the Sudoku rules immediately.
+2. **Explore further**: It continues exploring other cells, even if some cells might violate the Sudoku rules.
+3. **No optimization**: DFS doesn't optimize the search process, meaning it blindly explores all possibilities before determining whether the solution is valid.
 
 ### 3. **Forward Checking**
-- **How It Works**: 
-  - Maintains a list of valid numbers for each cell.
-  - Before placing a number, it ensures that no other cell will be left without valid options due to the placement.
-- **Pros**: 
-  - Reduces unnecessary trials by eliminating invalid options upfront.
-  - Improves efficiency significantly compared to the other methods.
-- **Cons**: 
-  - Requires more memory and computation to maintain and update the lists of valid numbers.
 
-#### **Performance Metrics**
-- **Minimum Steps**: 45 (States 1, 2, 4, 6, 7, 8, 9, 10)  
-- **Maximum Steps**: 61 (State 5)  
-- **Average Steps**: 47.8  
+Forward Checking enhances the Backtracking algorithm by performing a preliminary check before making assignments:
+1. **Check empty cells**: For each empty cell, the algorithm computes a list of possible valid numbers that can be placed in the cell.
+2. **Reduce possibilities**: After each number is assigned to a cell, the algorithm updates the list of possible numbers for all other empty cells.
+3. **Validate**: If any cell ends up with no valid options, the algorithm backtracks and tries a different number.
+4. **Recursion**: After successfully assigning a number, the algorithm proceeds to the next empty cell.
 
----
+## Algorithm Comparison
 
-## 📊 **Algorithm Comparison**
+The effectiveness of each algorithm is compared based on different Sudoku grid sizes and difficulty levels.
 
-| Algorithm         | Minimum Steps | Maximum Steps | Average Steps | Efficiency Ranking |
-|--------------------|---------------|---------------|---------------|--------------------|
-| **Backtracking**   | 227           | 4483          | 1203.1        | 🚫 Least Efficient |
-| **DFS**            | 108           | 2264          | 671           | ⚠️ Moderate        |
-| **Forward Checking** | 45            | 61            | 47.8          | ✅ Most Efficient  |
+| **Difficulty** | **Algorithm**       | **Number of Steps** | **Time**   |
+|----------|---------------------|---------------------|------------|
+| **Easy** | **DFS**             | 101                 | 0.201s     |
+| **4x4**  | **Backtracking**    | 4                   | 0.006s     |
+|          | **Forward Checking**| 4                   | 0.006s     |
+| **Medium** | **DFS**             | 10,133              | 32.633s    |
+| **4x4**  | **Backtracking**    | 12                  | 0.021s     |
+|          | **Forward Checking**| 10                  | 0.019s     |
+| **Hard** | **DFS**             | 43,981              | 141.57s    |
+| **4x4**  | **Backtracking**    | 12                  | 0.037s     |
+|          | **Forward Checking**| 12                  | 0.038s     |
+| **Easy** | **DFS**             | 150,213             | 483.76s    |
+| **9x9**  | **Backtracking**    | 31                  | 0.172s     |
+|          | **Forward Checking**| 29                  | 0.166s     |
+| **Medium** | **DFS**            | 486,179             | 26m 4s     |
+| **9x9**  | **Backtracking**    | 131                 | 0.989s     |
+|          | **Forward Checking**| 95                  | 0.755s     |
+| **Hard** | **DFS**             | 1,429,857,132       | 1283h 8m 24s (estimated) |
+| **9x9**  | **Backtracking**    | 975                 | 10.626s    |
+|          | **Forward Checking**| 503                 | 5.603s     |
 
----
+### Notes:
+- The **DFS** algorithm is the least efficient, especially for larger puzzles or higher difficulty levels, as it does not check the validity of a solution until all steps are completed.
+- **Backtracking** is the simplest to implement but becomes less effective as the number of empty cells increases, especially for larger grids.
+- **Forward Checking** is the most efficient of the three algorithms, as it reduces the search space by eliminating invalid options early in the process, though it requires a more complex implementation.
 
-## 🌟 **Key Insights**
-- **Forward Checking**: 
-  - The most efficient algorithm, showing consistent and low step counts across all states.
-- **DFS**: 
-  - A better choice than Backtracking, with lower average and maximum steps, but still less efficient than Forward Checking.
-- **Backtracking**: 
-  - Reliable but the least efficient, with the highest step count variability and longest solution times.
+## Conclusion
 
----
+Each algorithm has its strengths and weaknesses depending on the size and difficulty of the Sudoku puzzle. For small, easy puzzles, **DFS** might suffice, but for larger or harder puzzles, **Forward Checking** is the most efficient algorithm for solving Sudoku. **Backtracking** strikes a balance between simplicity and performance but is generally less optimal than **Forward Checking**.
 
-## 📚 **Resources**
-- [Sudoku Rules](https://en.wikipedia.org/wiki/Sudoku)
-- Algorithm details and performance analysis in the repository documentation.
