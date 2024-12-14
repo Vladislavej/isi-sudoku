@@ -152,6 +152,7 @@ class SudokuGUI:
         self.delay = 100  # default delay in milliseconds
         self.start_time = None
         self.timer_running = False
+        self.last_updated_cell = None
 
         self.create_widgets()
         self.generate_board()
@@ -204,6 +205,7 @@ class SudokuGUI:
         self.delay = int(value)
 
     def generate_board(self):
+        self.last_updated_cell = None
         self.size = 4 if self.size_var.get() == "4x4" else 9
         num_holes = self.get_num_holes()
 
@@ -261,9 +263,15 @@ class SudokuGUI:
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j] != board[i][j]:
+                    if self.last_updated_cell:
+                        last_i, last_j = self.last_updated_cell
+                        self.entries[last_i][last_j].config(bg="lightyellow")  # Reset the last updated cell color
+
                     self.entries[i][j].delete(0, tk.END)
                     if board[i][j] != 0:
                         self.entries[i][j].insert(0, str(board[i][j]))
+                    self.entries[i][j].config(bg="red")
+                    self.last_updated_cell = (i, j)  # Update the last updated cell
 
     def update_step_label(self, steps):
         self.step_label.config(text=f"Steps: {steps[0]}")
@@ -276,8 +284,10 @@ class SudokuGUI:
 
     def update_time_label(self):
         if self.timer_running:
-            elapsed_time = int((time.time() - self.start_time) * 1000)
-            self.time_label.config(text=f"{elapsed_time}ms")
+            elapsed_time = time.time() - self.start_time
+            seconds = int(elapsed_time)
+            milliseconds = int((elapsed_time - seconds) * 1000)
+            self.time_label.config(text=f"{seconds}.{milliseconds:03d}s")
 
     def solve_board(self):
         algorithm = self.solve_alg_var.get()
@@ -295,7 +305,7 @@ class SudokuGUI:
         if solving_method(board_copy, self.size, self, self.delay, steps):
             self.board = board_copy
             self.display_board()
-            messagebox.showinfo("Statistics", f"Finished using {algorithm} in {steps[0]} steps!")
+            messagebox.showinfo("Statistics", f"Finished using {algorithm}!")
         else:
             messagebox.showerror("Error", f"No solution exists using {algorithm}!")
 
