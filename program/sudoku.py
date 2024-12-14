@@ -55,6 +55,33 @@ def remove_numbers(board, num_holes, size):
 def is_valid_board(board, size):
     return solve_sudoku([row[:] for row in board], size)
 
+def is_valid_solution(board, size):
+    def is_valid_row(row):
+        return len(set(row)) == len(row) - row.count(0)
+
+    def is_valid_col(col):
+        col_values = [board[row][col] for row in range(size)]
+        return len(set(col_values)) == len(col_values) - col_values.count(0)
+
+    def is_valid_box(start_row, start_col):
+        box_values = []
+        box_size = int(size ** 0.5)
+        for r in range(start_row, start_row + box_size):
+            for c in range(start_col, start_col + box_size):
+                box_values.append(board[r][c])
+        return len(set(box_values)) == len(box_values) - box_values.count(0)
+
+    for i in range(size):
+        if not is_valid_row(board[i]) or not is_valid_col(i):
+            return False
+
+    box_size = int(size ** 0.5)
+    for r in range(0, size, box_size):
+        for c in range(0, size, box_size):
+            if not is_valid_box(r, c):
+                return False
+
+        return True
 
 def solve_with_backtracking(board, size, gui, delay, steps):
     for row in range(size):
@@ -79,29 +106,31 @@ def solve_with_backtracking(board, size, gui, delay, steps):
 
 
 def solve_with_dfs(board, size, gui, delay, steps):
-    stack = [(board, 0, 0)]
-    while stack:
-        current_board, row, col = stack.pop()
+    def dfs(row, col):
         if row == size:
-            for r in range(size):
-                for c in range(size):
-                    board[r][c] = current_board[r][c]
-            return True
+            return is_valid_solution(board, size)
 
         next_row, next_col = (row + (col + 1) // size, (col + 1) % size)
-        if current_board[row][col] != 0:
-            stack.append((current_board, next_row, next_col))
-        else:
-            for num in range(1, size + 1):
-                if is_valid(current_board, row, col, num, size):
-                    new_board = [row[:] for row in current_board]
-                    new_board[row][col] = num
-                    stack.append((new_board, next_row, next_col))
-                    gui.update_board(new_board)
-                    gui.root.update_idletasks()
-                    gui.root.after(delay)
-                    steps[0] += 1
-    return False
+
+        if board[row][col] != 0:
+            return dfs(next_row, next_col)
+
+        for num in range(1, size + 1):
+            board[row][col] = num
+
+            gui.update_board(board)
+            gui.root.update_idletasks()
+            gui.root.after(delay)
+            steps[0] += 1
+
+            if dfs(next_row, next_col):
+                return True
+
+            board[row][col] = 0
+
+        return False
+
+    return dfs(0, 0)
 
 
 def solve_with_forward_checking(board, size, gui, delay, steps):
@@ -189,6 +218,12 @@ class SudokuGUI:
         self.delay_scale.set(self.delay)
         self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
 
+        self.time_label = tk.Label(self.buttons_frame, text="Time: 0s")
+        self.time_label.grid(row=2, column=0, padx=5, pady=5)
+
+        self.step_label = tk.Label(self.buttons_frame, text="Steps: 0")
+        self.step_label.grid(row=2, column=1, padx=5, pady=5)
+
     def update_delay(self, value):
         self.delay = int(value)
 
@@ -214,7 +249,7 @@ class SudokuGUI:
         if self.size == 4:
             return {"Easy": self.size * 1, "Medium": self.size * 2, "Hard": self.size * 3}[difficulty]
         else:
-            return {"Easy": self.size * 3, "Medium": self.size * 4, "Hard": self.size * 5}[difficulty]
+            return {"Easy": self.size * 3, "Medium": self.size * 5, "Hard": self.size * 7}[difficulty]
 
     def reset_board(self):
         self.board = [row[:] for row in self.initial_board]
@@ -268,7 +303,7 @@ class SudokuGUI:
         if solving_method(board_copy, self.size, self, self.delay, steps):
             self.board = board_copy
             self.display_board()
-            messagebox.showinfo("Statistics", f"Solved using {algorithm} in {steps[0]} steps!")
+            messagebox.showinfo("Statistics", f"Finished using {algorithm} in {steps[0]} steps!")
         else:
             messagebox.showerror("Error", f"No solution exists using {algorithm}!")
 
