@@ -94,6 +94,7 @@ def solve_with_backtracking(board, size, gui, delay, steps):
                         gui.root.update_idletasks()
                         gui.root.after(delay)
                         steps[0] += 1
+                        gui.update_step_label(steps)
                         if solve_with_backtracking(board, size, gui, delay, steps):
                             return True
                         board[row][col] = 0
@@ -122,7 +123,7 @@ def solve_with_dfs(board, size, gui, delay, steps):
             gui.root.update_idletasks()
             gui.root.after(delay)
             steps[0] += 1
-
+            gui.update_step_label(steps)
             if dfs(next_row, next_col):
                 return True
 
@@ -134,51 +135,23 @@ def solve_with_dfs(board, size, gui, delay, steps):
 
 
 def solve_with_forward_checking(board, size, gui, delay, steps):
-    def forward_check(board, size):
-        return [[[num for num in range(1, size + 1) if is_valid(board, row, col, num, size)]
-                 if board[row][col] == 0 else []
-                 for col in range(size)] for row in range(size)]
-
-    def forward_check_solve(board, size, possibilities):
-        empty_cells = [(row, col) for row in range(size) for col in range(size) if board[row][col] == 0]
-        if not empty_cells:
-            return True
-
-        empty_cells.sort(key=lambda cell: len(possibilities[cell[0]][cell[1]]))
-        row, col = empty_cells[0]
-
-        for num in possibilities[row][col]:
-            if is_valid(board, row, col, num, size):
-                board[row][col] = num
-                gui.update_board(board)
-                gui.root.update_idletasks()
-                gui.root.after(delay)
-                steps[0] += 1
-                new_possibilities = forward_check(board, size)
-                if forward_check_solve(board, size, new_possibilities):
-                    return True
-                board[row][col] = 0
-                gui.update_board(board)
-                gui.root.update_idletasks()
-                gui.root.after(delay)
-                steps[0] += 1
-
-        return False
-
-    possibilities = forward_check(board, size)
-    return forward_check_solve(board, size, possibilities)
-
+    return False
 
 class SudokuGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Sudoku")
 
+        self.root.geometry("450x600")
+        self.root.resizable(False, False)
+
         self.size = 9
         self.board = []
         self.original_board = []
         self.initial_board = []
         self.delay = 100  # default delay in milliseconds
+        self.start_time = None
+        self.timer_running = False
 
         self.create_widgets()
         self.generate_board()
@@ -219,10 +192,10 @@ class SudokuGUI:
         self.delay_scale.grid(row=1, column=2, columnspan=4, pady=5)
 
         self.time_label = tk.Label(self.buttons_frame, text="Time: 0s")
-        self.time_label.grid(row=2, column=0, padx=5, pady=5)
+        self.time_label.grid(row=2, column=0, padx=10, pady=10)
 
         self.step_label = tk.Label(self.buttons_frame, text="Steps: 0")
-        self.step_label.grid(row=2, column=1, padx=5, pady=5)
+        self.step_label.grid(row=2, column=1, padx=10, pady=10)
 
     def update_delay(self, value):
         self.delay = int(value)
@@ -289,6 +262,20 @@ class SudokuGUI:
                     if board[i][j] != 0:
                         self.entries[i][j].insert(0, str(board[i][j]))
 
+    def update_step_label(self, steps):
+        self.step_label.config(text=f"Steps: {steps[0]}")
+        self.update_time_label()
+
+    def start_timer(self):
+        self.start_time = time.time()
+        self.timer_running = True
+        self.update_time_label()
+
+    def update_time_label(self):
+        if self.timer_running:
+            elapsed_time = int((time.time() - self.start_time) * 1000)
+            self.time_label.config(text=f"{elapsed_time}ms")
+
     def solve_board(self):
         algorithm = self.solve_alg_var.get()
         solving_methods = {
@@ -300,6 +287,8 @@ class SudokuGUI:
 
         board_copy = [row[:] for row in self.board]
         steps = [0]
+        self.start_timer()
+
         if solving_method(board_copy, self.size, self, self.delay, steps):
             self.board = board_copy
             self.display_board()
