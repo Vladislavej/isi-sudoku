@@ -128,4 +128,41 @@ def solve_with_dfs(board, size, gui, delay, steps):
 
 
 def solve_with_forward_checking(board, size, gui, delay, steps):
-    return False
+    def forward_check(board, size):
+        for row in range(size):
+            for col in range(size):
+                if board[row][col] == 0:
+                    valid_numbers = []
+                    for num in range(1, size + 1):
+                        if is_valid(board, row, col, num, size):
+                            valid_numbers.append(num)
+                    if not valid_numbers:
+                        return False
+        return True
+
+    for row in range(size):
+        for col in range(size):
+            if board[row][col] == 0:
+                for num in range(1, size + 1):
+                    if is_valid(board, row, col, num, size):
+                        board[row][col] = num
+
+                        gui.update_board(board)
+                        gui.root.update_idletasks()
+                        gui.root.after(delay)
+                        steps[0] += 1
+                        gui.update_step_label(steps)
+
+                        if forward_check(board, size):
+                            if solve_with_forward_checking(board, size, gui, delay, steps):
+                                return True
+
+                        board[row][col] = 0
+                        gui.update_board(board)
+                        gui.root.update_idletasks()
+                        gui.root.after(delay)
+                        steps[0] += 1
+
+                return False
+
+    return True
